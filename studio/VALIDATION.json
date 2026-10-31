@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "recorded_on": "2026-10-31",
+  "python_tests_passed": 48,
+  "javascript_checks_passed": 5,
+  "native_workspace_ui": "verified",
+  "native_documents_fixture": "unresolved timeout on development Mac",
+  "live_checked_edit_providers": [
+    "gemini",
+    "ollama"
+  ],
+  "model_training": "not_run",
+  "general_binary_crud_benchmark": "not_run",
+  "detail": "../docs/VALIDATION.md"
+}

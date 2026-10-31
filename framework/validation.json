@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-29",
+  "protocol_tests": {
+    "command": "python3 -m unittest discover -s tests -v",
+    "passed": 12
+  },
+  "fixture_encoding_check": {
+    "status": "pass",
+    "method": "Extract Mach-O __text and compare with authored payload bytes",
+    "assembler": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "command": "clang -target arm64-apple-macos11 -c arm64-fixtures.s -o arm64-fixtures.o",
+    "text_hex": "00040091c0035fd600080091c0035fd6",
+    "assembler_role": "independent fixture encoding cross-check; not used by materializer"
+  },
+  "create_smoke": "11/11 public cases passed",
+  "update_smoke": "11/11 public cases passed",
+  "native_execution": "not_run",
+  "model_training": "not_run",
+  "model_benchmark": "not_run"
+}

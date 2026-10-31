@@ -1,0 +1,596 @@
+{
+  "version": "hexwise/prompt-0.2-draft",
+  "created": "2026-10-29",
+  "profiles": [
+    {
+      "id": "linux-x86_64",
+      "group": "linux",
+      "label": "Linux x86-64",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "System V AMD64, LP64",
+      "container": "ELF64",
+      "rules": "For ordinary integer/pointer arguments use RDI, RSI, RDX, RCX, R8, R9; a scalar integer result uses RAX. Handle aggregates, floating point and variadics by their full ABI classification. Preserve nonvolatile registers. Observe 16-byte call-site stack alignment and return-address effects. The user-space red zone is not a kernel stack rule. Select the x86-64 feature level explicitly; do not assume AVX or AVX-512. Linux syscall registers differ from the function ABI. Pin kernel, libc, loader and PIE policy; do not infer syscall numbers from another OS.",
+      "sources": [
+        "sysv64",
+        "intel"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-x86_64.txt",
+      "task_template_path": "linux/linux-x86_64.task-template.json"
+    },
+    {
+      "id": "linux-i386",
+      "group": "linux",
+      "label": "Linux x86 32-bit",
+      "architecture": "IA-32 protected-mode user space",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "System V i386, ILP32",
+      "container": "ELF32",
+      "rules": "Use the i386 function ABI, not AMD64: ordinary C arguments are stack-based. Pin call-site stack alignment, scalar and multiword return rules, x87/SSE floating-point policy and PIC/GOT conventions for the chosen toolchain ABI. Preserve nonvolatile registers. Distinguish legacy instructions, CPU feature availability and kernel syscall entry mechanisms. Require a 32-bit user-space environment and matching loader; a 64-bit Linux host alone is insufficient.",
+      "sources": [
+        "sysv32",
+        "intel"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-i386.txt",
+      "task_template_path": "linux/linux-i386.task-template.json"
+    },
+    {
+      "id": "linux-aarch64",
+      "group": "linux",
+      "label": "Linux ARM64",
+      "architecture": "AArch64 A64",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "AAPCS64, LP64",
+      "container": "ELF64",
+      "rules": "A64 instructions occupy four bytes; serialize instruction words in little-endian memory order. Ordinary scalar integer arguments use X0-X7 and ordinary scalar integer results use X0. Preserve required nonvolatile state and 16-byte SP alignment. Treat X18 according to the selected platform contract; do not assume it is scratch. Pin ISA extensions, TLS, BTI/PAC requirements, libc/loader and PIE policy. Linux kernel syscall conventions are distinct from function calls.",
+      "sources": [
+        "arm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-aarch64.txt",
+      "task_template_path": "linux/linux-aarch64.task-template.json"
+    },
+    {
+      "id": "linux-armv7hf",
+      "group": "linux",
+      "label": "Linux ARMv7 hard float",
+      "architecture": "ARMv7-A A32 or T32, explicitly selected",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "AAPCS32 VFP variant, hard-float EABI",
+      "container": "ELF32",
+      "rules": "Choose A32 or Thumb/T32 at every entry and interworking edge. A32 words occupy four bytes; T32 instructions can occupy two or four bytes. Do not reverse a complete 32-bit Thumb instruction as though it were one A32 word. Floating-point parameters follow the hard-float VFP variant; never mix softfp linkage. Require the exact FPU and SIMD feature set. Preserve callee-saved state, interworking and public-interface stack alignment. Pin target loader and ELF attributes.",
+      "sources": [
+        "arm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-armv7hf.txt",
+      "task_template_path": "linux/linux-armv7hf.task-template.json"
+    },
+    {
+      "id": "linux-riscv64",
+      "group": "linux",
+      "label": "Linux RISC-V 64-bit",
+      "architecture": "RV64, ISA string required",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "RISC-V LP64D",
+      "container": "ELF64",
+      "rules": "Require a canonical ISA/extension string including the floating-point capabilities needed by LP64D. Use a0-a7 for ordinary integer argument slots and a0/a1 for integer results as classified by the psABI. Preserve s registers, gp/tp roles and ABI stack alignment. Do not assume compressed instructions, vectors or linker relaxation. Recompute split PC-relative immediates and relocation pairs. Match ELF ABI flags to LP64D and the target runtime.",
+      "sources": [
+        "riscv",
+        "rvisa"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-riscv64.txt",
+      "task_template_path": "linux/linux-riscv64.task-template.json"
+    },
+    {
+      "id": "linux-ppc64le",
+      "group": "linux",
+      "label": "Linux POWER little-endian",
+      "architecture": "Power ISA 64-bit, generation required",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Power ELFv2, LP64",
+      "container": "ELF64",
+      "rules": "Use ELFv2 function entry rules, including global/local entry distinctions and TOC conventions. Do not import ELFv1 function-descriptor assumptions. Preserve ABI-defined nonvolatile GPR, FPR, vector and condition-register state and required stack frames. Pin the POWER generation, vector extensions, CPU features and runtime. Validate branch range, instruction alignment, TOC-relative addressing and relocation semantics against the exact ABI revision.",
+      "sources": [
+        "power"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-ppc64le.txt",
+      "task_template_path": "linux/linux-ppc64le.task-template.json"
+    },
+    {
+      "id": "linux-s390x",
+      "group": "linux",
+      "label": "Linux IBM Z",
+      "architecture": "IBM z/Architecture 64-bit",
+      "pointer_bits": 64,
+      "data_endianness": "big",
+      "abi": "s390x ELF ABI",
+      "container": "ELF64",
+      "rules": "Serialize instruction and data fields in the target big-endian order, using architecture-defined instruction encodings. Instruction lengths vary; do not impose A64 alignment or x86 encodings. Pin the IBM Z machine/facility level. Follow the s390x register, stack-save-area, linkage and return conventions, including floating point and aggregates. Check PC-relative displacement units and ranges, ELF relocations, loader and libc before proposing bytes.",
+      "sources": [
+        "s390"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "linux/linux-s390x.txt",
+      "task_template_path": "linux/linux-s390x.task-template.json"
+    },
+    {
+      "id": "windows-x64",
+      "group": "windows",
+      "label": "Windows x64",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Microsoft x64, LLP64",
+      "container": "PE32+ / AMD64",
+      "rules": "For ordinary integer/pointer arguments use RCX, RDX, R8, R9; scalar integer results use RAX. Respect positional floating-point rules, required 32-byte caller shadow space, stack alignment and nonvolatile state. There is no System V red zone. Generate applicable unwind metadata, stack probing and control-flow protection. Use declared Windows imports rather than guessed syscall numbers. PE imports, RVAs, relocation tables and section alignment must agree.",
+      "sources": [
+        "win64",
+        "pe",
+        "intel"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "windows/windows-x64.txt",
+      "task_template_path": "windows/windows-x64.task-template.json"
+    },
+    {
+      "id": "windows-x86",
+      "group": "windows",
+      "label": "Windows x86 32-bit",
+      "architecture": "IA-32",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "Microsoft x86, exact convention required",
+      "container": "PE32 / I386",
+      "rules": "Require the function convention: cdecl, stdcall, fastcall, thiscall or another explicitly supported choice. Stack cleanup, register arguments, hidden arguments and symbol decoration must match it. Preserve nonvolatile state. Do not reuse x64 shadow-space rules. Pin SSE/x87 policy, structure layout, SEH and mitigations. Use PE32 imports and relocations and the exact 32-bit dependency set; do not assume a 64-bit loader can load a 32-bit DLL into its process.",
+      "sources": [
+        "win32",
+        "pe",
+        "intel"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "windows/windows-x86.txt",
+      "task_template_path": "windows/windows-x86.task-template.json"
+    },
+    {
+      "id": "windows-arm64",
+      "group": "windows",
+      "label": "Windows ARM64",
+      "architecture": "AArch64 A64",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Windows native ARM64, LLP64",
+      "container": "PE32+ / ARM64",
+      "rules": "Follow Windows ARM64 platform rules in addition to AAPCS64. Keep X18 reserved for the platform and follow frame-chain, stack, probing and unwind requirements. Select supported ISA features and pointer/control-flow protection. Use declared Windows imports and PE ARM64 relocations. Native ARM64 and Arm64EC are separate ABIs; do not mix their binaries or calling conventions.",
+      "sources": [
+        "winarm",
+        "pe"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "windows/windows-arm64.txt",
+      "task_template_path": "windows/windows-arm64.task-template.json"
+    },
+    {
+      "id": "windows-arm64ec",
+      "group": "windows",
+      "label": "Windows ARM64EC",
+      "architecture": "AArch64 with Arm64EC restrictions",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Microsoft Arm64EC, x64-interoperable LLP64",
+      "container": "PE / Arm64EC, exact SDK image rules",
+      "rules": "Require a Windows 11-or-later target contract and pinned SDK ABI definitions. Follow Arm64EC-specific register restrictions, x64-compatible data layout, interoperation thunks, call transitions and metadata. This uses Arm instructions but is not the native Windows ARM64 ABI. Do not derive transitions by substituting x64 registers into AAPCS64. If exact interoperation and image requirements are unavailable, return needs_input instead of fabricating them.",
+      "sources": [
+        "winec",
+        "pe"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "windows/windows-arm64ec.txt",
+      "task_template_path": "windows/windows-arm64ec.task-template.json"
+    },
+    {
+      "id": "macos-arm64",
+      "group": "apple",
+      "label": "macOS Apple silicon",
+      "architecture": "AArch64 A64, arm64 slice",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Apple ARM64, LP64",
+      "container": "Mach-O 64-bit",
+      "rules": "Use Apple ARM64 calling rules, including Apple-specific stack argument and variadic handling. Preserve X18 and follow frame/unwind rules. Maintain 16-byte SP alignment. Match the macOS deployment target, dyld imports, load commands and signing policy. Do not use Linux syscall conventions. arm64e and pointer authentication require a separate explicit contract; do not assume a generic arm64 slice satisfies them. For universal binaries, modify only the named slice and repair outer offsets.",
+      "sources": [
+        "applearm",
+        "macho"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "apple/macos-arm64.txt",
+      "task_template_path": "apple/macos-arm64.task-template.json"
+    },
+    {
+      "id": "macos-x86_64",
+      "group": "apple",
+      "label": "macOS Intel",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Darwin x86-64, LP64",
+      "container": "Mach-O 64-bit",
+      "rules": "Use Darwin x86-64 conventions and the applicable AMD64 argument classifications, not Windows x64. Pin CPU feature requirements, deployment target, dyld interfaces, symbol naming and exception/unwind format. Do not use Linux syscall numbers. Treat a native Intel target and translated execution as different test environments. Identify the correct universal-binary slice; validate Mach-O structures, imports and signing after a change.",
+      "sources": [
+        "apple",
+        "sysv64",
+        "macho"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "apple/macos-x86_64.txt",
+      "task_template_path": "apple/macos-x86_64.task-template.json"
+    },
+    {
+      "id": "ios-arm64",
+      "group": "apple",
+      "label": "iOS and iPadOS devices",
+      "architecture": "AArch64 A64, arm64 device slice",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Apple ARM64 device ABI",
+      "container": "Mach-O 64-bit, device platform",
+      "rules": "Use Apple ARM64 calling conventions and reserved registers. Require the device platform, minimum OS, SDK interfaces, entitlements and provisioning/signing policy. A simulator slice is not interchangeable with a device slice. Pointer authentication and arm64e require their own exact ABI contract. A raw function does not establish an installable application; retain app packaging, resource and platform-load requirements as separate gates.",
+      "sources": [
+        "applearm",
+        "macho"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "apple/ios-arm64.txt",
+      "task_template_path": "apple/ios-arm64.task-template.json"
+    },
+    {
+      "id": "ios-simulator-arm64",
+      "group": "apple",
+      "label": "iOS simulator on Apple silicon",
+      "architecture": "AArch64 A64",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Apple ARM64 simulator ABI",
+      "container": "Mach-O 64-bit, simulator platform",
+      "rules": "Require simulator platform metadata, deployment target and simulator SDK/runtime interfaces. Do not reuse a device Mach-O merely because it also contains A64 instructions. Apply Apple ARM64 calling conventions, reserved-register and unwind rules. Distinguish simulator validation from device validation and signing/provisioning. Pin host and simulator versions; do not claim physical-device behavior from a simulator run.",
+      "sources": [
+        "applearm",
+        "macho"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "apple/ios-simulator-arm64.txt",
+      "task_template_path": "apple/ios-simulator-arm64.task-template.json"
+    },
+    {
+      "id": "ios-simulator-x86_64",
+      "group": "apple",
+      "label": "iOS simulator on Intel",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Darwin x86-64 simulator ABI",
+      "container": "Mach-O 64-bit, simulator platform",
+      "rules": "Require an SDK/runtime combination that supports this simulator architecture. Use Darwin x86-64 ABI rules and simulator platform metadata. Do not emit ARM device instructions or a macOS executable with the wrong platform load commands. Match simulator imports and deployment target; distinguish this environment from both macOS applications and physical iOS devices.",
+      "sources": [
+        "apple",
+        "sysv64",
+        "macho"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "apple/ios-simulator-x86_64.txt",
+      "task_template_path": "apple/ios-simulator-x86_64.task-template.json"
+    },
+    {
+      "id": "android-arm64-v8a",
+      "group": "android",
+      "label": "Android ARM64",
+      "architecture": "AArch64 A64",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Android arm64-v8a",
+      "container": "ELF64",
+      "rules": "Use Android arm64-v8a ABI rules; keep X18 reserved. Pin API level, NDK/ABI revision, Bionic imports, loader, ELF page-size compatibility and packaging. No optional ISA extension without an explicit contract. A native shared library is not a complete APK. JNI boundaries require exact signatures, JNI environment handling and reference ownership.",
+      "sources": [
+        "android",
+        "arm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "android/android-arm64-v8a.txt",
+      "task_template_path": "android/android-arm64-v8a.task-template.json"
+    },
+    {
+      "id": "android-armeabi-v7a",
+      "group": "android",
+      "label": "Android ARMv7",
+      "architecture": "ARMv7 A32/T32",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "Android armeabi-v7a, softfp calling convention",
+      "container": "ELF32",
+      "rules": "Android armeabi-v7a floating-point arguments follow softfp linkage even when hardware floating-point instructions are used. Do not use Linux armhf parameter rules. Specify instruction state, interworking, permitted features, API level and NDK revision. Match Bionic, loader and JNI interfaces; preserve native-library packaging and page-size requirements.",
+      "sources": [
+        "android",
+        "arm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "android/android-armeabi-v7a.txt",
+      "task_template_path": "android/android-armeabi-v7a.task-template.json"
+    },
+    {
+      "id": "android-x86_64",
+      "group": "android",
+      "label": "Android x86-64",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "Android x86_64",
+      "container": "ELF64",
+      "rules": "Use the Android x86_64 ABI and its specified CPU feature baseline. Pin API level, NDK revision and Bionic dependencies. Do not substitute glibc imports or Windows calling conventions. Match loader, page-size, JNI and package requirements. Validate on the declared emulator/device environment.",
+      "sources": [
+        "android",
+        "sysv64"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "android/android-x86_64.txt",
+      "task_template_path": "android/android-x86_64.task-template.json"
+    },
+    {
+      "id": "android-x86",
+      "group": "android",
+      "label": "Android x86 32-bit",
+      "architecture": "IA-32",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "Android x86",
+      "container": "ELF32",
+      "rules": "Use Android x86 ABI stack and floating-point conventions and its CPU feature baseline. Pin API/NDK versions, Bionic and loader. Do not equate this with arbitrary Linux i386. Preserve JNI and package interfaces. Require runtime support for the requested 32-bit ABI.",
+      "sources": [
+        "android",
+        "sysv32"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "android/android-x86.txt",
+      "task_template_path": "android/android-x86.task-template.json"
+    },
+    {
+      "id": "freebsd-amd64",
+      "group": "freebsd",
+      "label": "FreeBSD amd64",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "FreeBSD AMD64 / System V-derived, LP64",
+      "container": "ELF64",
+      "rules": "Use the FreeBSD user-space AMD64 ABI and pinned release interfaces. Linux syscall numbers, errno behavior, ELF interpreter paths and libc contracts are not interchangeable. Select CPU features and PIE/TLS policy. Preserve function ABI state and unwind information, validate FreeBSD ELF branding/notes where applicable, and test with matching FreeBSD dependencies.",
+      "sources": [
+        "bsd",
+        "sysv64"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "freebsd/freebsd-amd64.txt",
+      "task_template_path": "freebsd/freebsd-amd64.task-template.json"
+    },
+    {
+      "id": "freebsd-aarch64",
+      "group": "freebsd",
+      "label": "FreeBSD ARM64",
+      "architecture": "AArch64 A64",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "FreeBSD AArch64 / AAPCS64-derived, LP64",
+      "container": "ELF64",
+      "rules": "Use the FreeBSD AArch64 ABI for the pinned release. Serialize A64 words in little-endian order and preserve required register state and stack alignment. Obtain platform-register, TLS, loader and libc details from the selected FreeBSD environment. Do not reuse Linux system-call or loader assumptions. Pin ISA extensions and validate the FreeBSD ELF image and imports.",
+      "sources": [
+        "bsd",
+        "arm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "freebsd/freebsd-aarch64.txt",
+      "task_template_path": "freebsd/freebsd-aarch64.task-template.json"
+    },
+    {
+      "id": "baremetal-cortex-m0",
+      "group": "embedded",
+      "label": "Bare metal Cortex-M0 and M0+",
+      "architecture": "ARMv6-M Thumb",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "AAPCS32 base, soft-float",
+      "container": "Board-specific raw flash image or ELF32",
+      "rules": "Thumb-only execution: do not emit A32 or instructions unavailable in ARMv6-M. Require exact MCU, flash/RAM layout, vector base, stack limit, bootloader and peripheral map. A boot image must supply the initial SP and valid Thumb reset/exception vectors; a callable function must not invent startup vectors. Use base soft-float calling rules. Do not assume an FPU, MPU, VTOR, semihosting or hosted syscalls.",
+      "sources": [
+        "arm",
+        "cortex"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "embedded/baremetal-cortex-m0.txt",
+      "task_template_path": "embedded/baremetal-cortex-m0.task-template.json"
+    },
+    {
+      "id": "baremetal-cortex-m4",
+      "group": "embedded",
+      "label": "Bare metal Cortex-M4",
+      "architecture": "ARMv7E-M Thumb/T32",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "AAPCS32, float ABI must be chosen",
+      "container": "Board-specific raw flash image or ELF32",
+      "rules": "Require exact MCU and whether an FPU exists and is enabled. Choose soft, softfp or hard-float calling convention; do not infer it from the Cortex-M4 name. Thumb instructions can be two or four bytes; preserve instruction and vector state. Pin memory map, vector table, boot chain, exception/interrupt conventions and peripheral access. Define volatile MMIO widths, barriers and concurrency requirements where relevant; do not invent peripheral addresses.",
+      "sources": [
+        "arm",
+        "cortex"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "embedded/baremetal-cortex-m4.txt",
+      "task_template_path": "embedded/baremetal-cortex-m4.task-template.json"
+    },
+    {
+      "id": "baremetal-rv32",
+      "group": "embedded",
+      "label": "Bare metal RISC-V 32-bit",
+      "architecture": "RV32, ISA string required",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "RISC-V ILP32 base; variants require new contract",
+      "container": "Board-specific raw image or ELF32",
+      "rules": "Pin MCU/SoC, privilege mode, boot entry, memory map, ISA extension string, ABI revision and trap conventions. No OS services are implied. Preserve psABI stack/register roles. Do not assume C compressed instructions, M multiplication, atomic extensions or floating point. Relaxation, GP setup and address calculation must match the chosen layout. Reset/startup and a callable function are different artifact contracts. RV32E needs a separate reduced-register ABI.",
+      "sources": [
+        "riscv",
+        "rvisa"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "embedded/baremetal-rv32.txt",
+      "task_template_path": "embedded/baremetal-rv32.task-template.json"
+    },
+    {
+      "id": "baremetal-rv64",
+      "group": "embedded",
+      "label": "Bare metal RISC-V 64-bit",
+      "architecture": "RV64, ISA string required",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "RISC-V LP64 base; variants require new contract",
+      "container": "Board-specific raw image or ELF64",
+      "rules": "Require board, privilege mode, startup entry, memory map, trap/interrupt model and exact ISA extensions. Use LP64 integer ABI unless a different explicit profile is selected. Do not assume Linux syscalls, SBI availability, compressed instructions, floating point or vectors. Verify split immediates, branch/jump ranges, GP/TLS initialization and address layout. Retain boot/recovery requirements separately from callable-function tests.",
+      "sources": [
+        "riscv",
+        "rvisa"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "embedded/baremetal-rv64.txt",
+      "task_template_path": "embedded/baremetal-rv64.task-template.json"
+    },
+    {
+      "id": "uefi-x64",
+      "group": "uefi",
+      "label": "UEFI x64 applications",
+      "architecture": "x86-64 long mode",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "UEFI x64 EFIAPI binding",
+      "container": "PE32+ EFI application",
+      "rules": "Use UEFI x64 calling rules, not the Linux System V ABI. Require firmware revision, EFI entry signature, image subsystem, relocation policy and named protocol interfaces. Match shadow space and stack rules for EFIAPI calls. Boot Services are unavailable after ExitBootServices; do not mix lifecycle phases. Do not import a Windows CRT or call OS syscalls. Require Secure Boot/signing policy and test only in the declared disposable firmware environment.",
+      "sources": [
+        "uefi",
+        "pe"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "uefi/uefi-x64.txt",
+      "task_template_path": "uefi/uefi-x64.task-template.json"
+    },
+    {
+      "id": "uefi-aarch64",
+      "group": "uefi",
+      "label": "UEFI AArch64 applications",
+      "architecture": "AArch64 A64",
+      "pointer_bits": 64,
+      "data_endianness": "little",
+      "abi": "UEFI AArch64 EFIAPI binding",
+      "container": "PE32+ EFI application",
+      "rules": "Use the UEFI AArch64 platform binding and the declared firmware version. Require EFI entry signature, protocol structures, relocation policy, memory attributes and cache synchronization rules for generated code. Do not substitute Linux syscalls or a Windows process runtime. Preserve UEFI-required ABI state. Distinguish Boot Services and Runtime Services lifetimes. Pin Secure Boot/signing policy and validate in the declared firmware test environment.",
+      "sources": [
+        "uefi",
+        "arm",
+        "pe"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "uefi/uefi-aarch64.txt",
+      "task_template_path": "uefi/uefi-aarch64.task-template.json"
+    },
+    {
+      "id": "wasm32-browser",
+      "group": "webassembly",
+      "label": "WebAssembly in a browser",
+      "architecture": "WebAssembly virtual ISA, memory32",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "Explicit module imports/exports and host interface",
+      "container": "WebAssembly core module",
+      "rules": "This is portable bytecode, not native CPU instructions. Require core feature set, imports/exports with exact types, memory/table limits and JavaScript boundary semantics. Encode section/body lengths, indices and LEB128 integers correctly; memory data is little-endian but LEB128 is not a fixed-width integer byte swap. Browser APIs require declared host imports. Do not assume WASI. Validate module typing and instantiate in the declared browser runtime.",
+      "sources": [
+        "wasm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "webassembly/wasm32-browser.txt",
+      "task_template_path": "webassembly/wasm32-browser.task-template.json"
+    },
+    {
+      "id": "wasm32-wasip1",
+      "group": "webassembly",
+      "label": "WebAssembly WASI Preview 1",
+      "architecture": "WebAssembly virtual ISA, memory32",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "WASI Preview 1, pinned interface snapshot",
+      "container": "WebAssembly core module",
+      "rules": "Pin the WASI Preview 1 interface snapshot, runtime and command-versus-reactor convention. Declare imports such as wasi_snapshot_preview1 by exact signatures, memory layouts and permissions. Preview 1 is a core module, not a component. Encode LEB128 fields, section lengths, memory/data and indices correctly. Do not assume host filesystem/network access or translate Linux syscall numbers directly into imports.",
+      "sources": [
+        "wasm",
+        "wasi"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "webassembly/wasm32-wasip1.txt",
+      "task_template_path": "webassembly/wasm32-wasip1.task-template.json"
+    },
+    {
+      "id": "wasm32-wasip2",
+      "group": "webassembly",
+      "label": "WebAssembly WASI 0.2 components",
+      "architecture": "WebAssembly virtual ISA, memory32 core modules",
+      "pointer_bits": 32,
+      "data_endianness": "little",
+      "abi": "WASI 0.2, WIT world and Canonical ABI pinned",
+      "container": "WebAssembly component",
+      "rules": "Require an exact WIT world and versioned interface dependencies, component-model feature set and runtime. Use the component binary format and Canonical ABI adapters, lifting/lowering and resource ownership rules. A plain core module is not a complete component. Pin allocation, strings, lists and post-return behavior for the interface. Do not silently substitute Preview 1 or a different WASI version.",
+      "sources": [
+        "component",
+        "wasi",
+        "wasm"
+      ],
+      "status": "prompt_only",
+      "runner_support": false,
+      "prompt_path": "webassembly/wasm32-wasip2.txt",
+      "task_template_path": "webassembly/wasm32-wasip2.task-template.json"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"addend":1,"base_sha256":null,"max_bytes":8,"operation":"create","protocol":"hexwise/0.1","requirement":"Return (X0 + 1) modulo 2^64; preserve other state.","target_profile":"aarch64-leaf-u64-add-v1","task_id":"add-1-fixture"}

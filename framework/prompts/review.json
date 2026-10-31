@@ -1,0 +1,13 @@
+{
+  "profiles": 31,
+  "native_profiles": 28,
+  "virtual_profiles": 3,
+  "standalone_prompts": 31,
+  "task_templates": 31,
+  "registry_consistency": "pass",
+  "prompt_sections": "pass",
+  "profile_ids_unique": "pass",
+  "new_target_execution": "not_run",
+  "model_prompt_evaluation": "not_run",
+  "runner_support": "none for new profiles"
+}

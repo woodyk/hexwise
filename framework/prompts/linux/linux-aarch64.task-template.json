@@ -1,0 +1,56 @@
+{
+  "protocol": "hexwise/prompt-0.2-draft",
+  "task_id": null,
+  "profile_id": "linux-aarch64",
+  "operation": null,
+  "behavior": null,
+  "acceptance_criteria": null,
+  "retained_behavior": null,
+  "artifact_kind": null,
+  "production_path": null,
+  "target": {
+    "platform_version": null,
+    "cpu_model": null,
+    "isa_features": null,
+    "abi_revision": null,
+    "pointer_bits": 64,
+    "data_endianness": "little"
+  },
+  "interface": {
+    "entry_signature": null,
+    "input_output_types": null,
+    "error_semantics": null
+  },
+  "layout": {
+    "entry_or_load_address": null,
+    "memory_map": null,
+    "position_independence": null,
+    "relocations": null
+  },
+  "dependencies": {
+    "imports_with_signatures": null,
+    "runtime_and_loader": null,
+    "packager_contract": null
+  },
+  "protection": {
+    "signing_and_packaging": null,
+    "control_flow_and_unwind": null
+  },
+  "limits": {
+    "max_artifact_bytes": null,
+    "cpu_budget": null,
+    "memory_bytes": null,
+    "attempts": null
+  },
+  "base": {
+    "sha256": null,
+    "bytes_reference": null,
+    "observations_reference": null
+  },
+  "evaluation": {
+    "runner_id": null,
+    "suite_id": null,
+    "required_gates": null
+  },
+  "tool_policy": null
+}

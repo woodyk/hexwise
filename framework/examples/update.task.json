@@ -1,0 +1,10 @@
+{
+  "protocol": "hexwise/0.1",
+  "task_id": "add-2-fixture",
+  "operation": "update",
+  "target_profile": "aarch64-leaf-u64-add-v1",
+  "requirement": "Return (X0 + 2) modulo 2^64; preserve other state.",
+  "addend": 2,
+  "base_sha256": "f1366f3c31eee2cb106c4134e2cca6f9da7483e303b03212d01acc7005bd10ef",
+  "max_bytes": 8
+}

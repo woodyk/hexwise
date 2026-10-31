@@ -1,0 +1,14 @@
+{
+  "protocol": "hexwise/0.1",
+  "task_id": "add-2-fixture",
+  "operation": "update",
+  "target_profile": "aarch64-leaf-u64-add-v1",
+  "task_sha256": "4f8b9f6223e5265b79c1b5fd13022777890f3370fc19b4c2cb80e30c5c254678",
+  "edits": [
+    {
+      "offset": 0,
+      "before": "00040091",
+      "after": "00080091"
+    }
+  ]
+}

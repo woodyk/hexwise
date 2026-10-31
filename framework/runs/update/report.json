@@ -1,0 +1,18 @@
+{
+  "protocol": "hexwise/0.1",
+  "task_sha256": "4f8b9f6223e5265b79c1b5fd13022777890f3370fc19b4c2cb80e30c5c254678",
+  "candidate_manifest_sha256": "5b6dc90e5465fd9b6b62e4adaa5a1574cbd82282d70cba1272f9ae7ea3e6b7dd",
+  "base_sha256": "f1366f3c31eee2cb106c4134e2cca6f9da7483e303b03212d01acc7005bd10ef",
+  "artifact_sha256": "eb72ea153b02ae8405ae2a2caaf1cc7848748bbe8b453e981ecf7ece8a8b2edb",
+  "artifact_bytes": 8,
+  "structural_status": "pass",
+  "behavior": {
+    "evaluator": "restricted-interpreter/0.1",
+    "status": "pass",
+    "cases": 11,
+    "failures": [],
+    "claim_scope": "public smoke cases under restricted instruction semantics",
+    "native_execution": "not_run",
+    "executable_container": "not_applicable"
+  }
+}

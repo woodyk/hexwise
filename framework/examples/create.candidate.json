@@ -1,0 +1,8 @@
+{
+  "protocol": "hexwise/0.1",
+  "task_id": "add-1-fixture",
+  "operation": "create",
+  "target_profile": "aarch64-leaf-u64-add-v1",
+  "task_sha256": "98727407370ec5f9e6e088411e37504cf140d9314ea3d22cf509dc5ba5d7af12",
+  "hex": "00040091c0035fd6"
+}
