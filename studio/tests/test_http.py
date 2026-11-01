@@ -40,6 +40,14 @@ class HTTP(unittest.TestCase):
   self.assertEqual(self.request(url)[2],original)
   self.server.app.preview_tokens[url.split('token=')[1]]['expires']=0
   self.assertEqual(self.request(url)[0],403)
+ def test_contract_options_and_draft_over_http(self):
+  status,_,body=self.api('contract-options',dict(profile='macos-arm64'));self.assertEqual(status,200)
+  options=json.loads(body);self.assertEqual(options['profile_id'],'macos-arm64')
+  self.assertIn('Ad-hoc signing',json.dumps(options))
+  self.assertEqual(self.api('contract-options',dict(profile='unknown'))[0],400)
+  _,_,body=self.api('create',dict(name='contract-test.bin'));project=json.loads(body)
+  status,_,body=self.api('contract',dict(project=project['id'],profile='macos-arm64',contract=dict(operation='CREATE',kind='Complete native executable')))
+  self.assertEqual(status,200);self.assertEqual(json.loads(body)['contract']['operation'],'CREATE')
  def test_api_transaction_roundtrip(self):
   path=self.server.app.workspace/'roundtrip.txt';path.write_bytes(b'AB')
   status,_,body=self.api('open',dict(path=str(path)));self.assertEqual(status,200);p=json.loads(body)

@@ -5,9 +5,9 @@ Public project summary of local checks recorded October 29–31, 2026. No accoun
 
 | Area | Recorded result | Scope |
 | --- | --- | --- |
-| Studio Python tests | 51 passing | Storage, exact backups, stale/conflicting edits, integrity, preferences, prompt chains, providers, real local HTTP and local Git integration |
+| Studio Python tests | 55 passing | Storage, exact backups, stale/conflicting edits, integrity, preferences, prompt chains, providers, real local HTTP and local Git integration |
 | Framework Python tests | 12 passing | Strict protocol/task binding, patch preconditions, fixture evaluation and failure retention |
-| JavaScript | Parse passes; 8 checks pass | Three modal-confirmation regressions, two pane-size constraints and three clarification-render checks |
+| JavaScript | Parse passes; 13 checks pass | Three modal-confirmation regressions, two pane-size constraints three clarification-render checks and five contract-form checks |
 | ARM64 fixtures | Create and update pass 11 public interpreter cases each | Authored `x + 1` and `x + 2` fixtures under restricted semantics; assembler independently cross-checked the bytes |
 | Live model edits | Gemini and local Ollama produced checked candidates | Small exact byte edits; originals retained; not a broad model benchmark |
 | Native macOS window | Workspace editing, saving, prompt selection, recovery and quit/close guards verified | arm64/macOS 12+ build, installed Python, local ad-hoc signature |
@@ -35,3 +35,5 @@ Python is the only runtime requirement for the local service. Node is used for t
 Historical framework results are retained in `framework/validation.json` and its authored example runs. The current local audit may be reproduced and extended; CI results should be reported for the actual commit that ran.
 
 The October 31 desktop clarification fix adds coverage for all 31 architecture adapters, an empty macOS ARM64 file, follow-up requirements, prompt-chain stopping and rejection of byte proposals mixed with clarification statuses. These are deterministic adapter and transaction regressions; they do not establish native model-generation capability.
+
+Contract-form follow-up: all 32 profile option sets, draft round-trip persistence, custom runtime values, invalid choices, cross-profile contract isolation, real HTTP access, HTML escaping, default values and the save flow are covered. A disposable macOS ARM64 draft was saved and reopened in the browser; no model request or candidate execution was performed in that UI check.

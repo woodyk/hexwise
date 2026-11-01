@@ -4,3 +4,5 @@
 
 
 .proposal-pill.rejected,.proposal-pill.cancelled{background:#fbefda;border-color:#e4cda6;color:#956c3b}
+
+.contract-form input,.contract-form select{width:100%;min-width:0}.contract-form textarea{min-height:100px}.contract-form .full{grid-column:1/-1}

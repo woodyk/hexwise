@@ -116,6 +116,61 @@ class App:
         if not entry:raise ValueError('Select the correct architecture/platform profile before AI editing.')
         return (ROOT/'profiles'/entry['prompt_path']).read_text()
 
+    def contract_options(self, identity):
+        self.profile(identity)  # Reject an unknown target before presenting choices.
+        profile=next((p for p in self.registry if p['id']==identity),{})
+        group=profile.get('group','document')
+        kinds=['Raw function payload','Complete native executable','Shared library','Relocatable object']
+        production=['direct-complete','payload-with-packager']
+        versions=[]
+        dependencies=['No external imports; self-contained payload','Explicit imports with signatures and pinned runtime (describe below)']
+        signing=['Not applicable to this artifact (explain why)','External signing after candidate validation (specify identity and entitlements)']
+        layout=['Position-independent payload; explicit entry offset required','Container-managed layout; all headers and relocations must be valid','Fixed-address image; explicit memory map required']
+        evaluation=['Static format checks only; execution not configured','External target runner; identify environment and test suite below']
+        if identity.startswith('macos-'):
+            versions=['macOS 12.0','macOS 13.0','macOS 14.0','macOS 15.0']
+            signing=['Ad-hoc signing for local testing; no distribution claim','Developer ID signing and notarization via external tools','Payload only; host controls executable mapping and signing']
+        elif identity.startswith('ios-'):
+            kinds=['Mach-O executable; application packaging specified separately','Dynamic library; integration specified separately','Relocatable object','Raw function payload']
+            signing=['Device signing and provisioning via external tools'] if 'simulator' not in identity else ['Simulator packaging and signing via external tools']
+        elif group=='embedded':
+            kinds=['Raw flash image with explicit board memory map','ELF firmware image','Raw function payload','Relocatable object']
+            signing=['Board-specific secure-boot/signing policy (specify below)','Unsigned development image; board policy must permit it']
+        elif group=='uefi':
+            kinds=['PE/COFF EFI application','Raw function payload','Relocatable object']
+            signing=['Secure Boot signing via external tools','Unsigned test image in an explicitly configured test VM']
+        elif group=='webassembly':
+            kinds=['WebAssembly component'] if identity=='wasm32-wasip2' else ['WebAssembly core module']
+            signing=['No native code signature; host integrity policy specified separately']
+            layout=['Module-defined memories, tables and exports; declare limits']
+        elif identity=='web-document':
+            kinds=['Standalone HTML document','UTF-8 text document']
+            production=['source-document']
+            dependencies=['Self-contained document; no remote assets or network calls','Explicit local dependencies (list below)']
+            signing=['Not applicable; source document']
+            layout=['Document layout; no native load addresses']
+            evaluation=['Restricted built-in HTML preview plus static checks; no behavioral pass implied','External browser test suite; identify browser and tests below']
+        if identity in ('linux-x86_64','linux-aarch64'):
+            evaluation.insert(0,'Built-in restricted Linux Docker runner; matching local image required')
+        abi=profile.get('abi','HTML / JavaScript / CSS or UTF-8 text; no native ABI')
+        fields=[
+            dict(key='operation',label='Operation',control='select',choices=['READ','CREATE','UPDATE','DELETE'],help='DELETE removes a named feature; it does not erase the file or user data.'),
+            dict(key='kind',label='Artifact kind',control='select',choices=kinds,help='Choose the output representation. Packaging requirements belong in additional target details.'),
+            dict(key='production',label='Production path',control='select',choices=production,help='direct-complete supplies every artifact byte; payload-with-packager requires an identified external integration process.'),
+            dict(key='version',label='Exact OS / runtime / CPU feature target',choices=versions,help='Suggestions are examples, not detected support. Pin your actual deployment version, SDK/runtime and CPU features.'),
+            dict(key='abi',label='ABI / calling convention',choices=[abi],default=abi,help='Taken from the selected profile. Specify revisions or variants when required.'),
+            dict(key='signature',label='Function / entry signature',choices=['uint32_t f(uint32_t x)','uint64_t f(uint64_t x)'] if group not in ('document','webassembly') else [],help='For a complete application, describe entry/startup and input/output semantics. Do not use a sample function signature for an app.'),
+            dict(key='dependencies',label='Dependency / import policy',choices=dependencies,help='List permitted imports, their signatures and runtime versions in additional target details.'),
+            dict(key='layout',label='Layout / addressing policy',choices=layout,help='Supply actual entry offsets, load addresses, memory maps or relocation rules where applicable.'),
+            dict(key='signing',label='Protection / signing policy',choices=signing,help='Selecting a policy does not sign the artifact or configure external tools.'),
+            dict(key='limits',label='Resource limits',choices=['Artifact <= 64 KiB; memory <= 128 MiB; execution <= 15 seconds','Artifact <= 1 MiB; memory <= 128 MiB; execution <= 15 seconds'],help='These are requested budgets, not guarantees. The chosen evaluator must enforce applicable limits; embedded targets need board-specific budgets.'),
+            dict(key='evaluation',label='Verification environment',choices=evaluation,help='Only the Linux Docker runner and restricted document preview are built in. Identify any external runner and independent tests.'),
+            dict(key='behavior',label='Required behavior',control='textarea',help='Describe what to create, change, read or remove, including inputs, outputs and error cases.'),
+            dict(key='acceptance',label='Acceptance criteria',control='textarea',help='Give concrete inputs and expected outputs or UI actions and expected results. Selecting a target never establishes a pass.'),
+            dict(key='retained',label='Behavior that must remain unchanged',control='textarea',help='State regression criteria. For a new artifact, explicitly say there is no existing behavior.'),
+            dict(key='details',label='Additional target and evaluator details',control='textarea',help='Pin imports, packager, addresses, signing tools and test identities here when relevant. Unknown details can remain a draft for chat clarification.')]
+        return dict(profile_id=identity,label=profile.get('label','Web document'),fields=fields)
+
     def browse(self,path):
         folder=Path(path or self.workspace).expanduser().resolve()
         if not folder.is_dir():raise ValueError('Choose a directory.')
@@ -165,7 +220,8 @@ class App:
                 context=data[offset:offset+context_bytes]
                 task=dict(mode='interactive-draft',request=text,step=step['prompt'],layout=payload.get('layout'),profile=profile,
                           profile_id=profile,host_request_id=secrets.token_hex(16),
-                          target_contract=project.get('contract',{}),
+                          target_contract=(project.get('contract',{}) if project.get('contract',{}).get('profile_id',profile)==profile else {}),
+                          contract_note=('Saved draft targets a different profile; clarify requirements.' if project.get('contract',{}).get('profile_id',profile)!=profile else 'Draft requirements; unknown fields need clarification.'),
                           file_name=project['name'],base_sha256=sha(data),file_bytes=len(data),
                           context_offset=offset,context_hex=context.hex(),complete_context=(offset==0 and len(context)==len(data)))
                 raw=self.providers.chat(payload['provider'],payload['model'],system,history+[dict(role='user',content=json.dumps(task))])
@@ -291,11 +347,19 @@ class App:
             self.preview_tokens={k:v for k,v in self.preview_tokens.items() if v['expires']>now}
             self.preview_tokens[token]=dict(project=project['id'],snapshot=project['current'],expires=now+600)
             return dict(url='/preview/'+project['id']+'?token='+token)
+        if route=='contract-options':return self.contract_options(data['profile'])
         if route=='contract':
             with self.projects.lock:
                 project=self.projects.load(data['project'])
                 contract=data['contract']
                 if not isinstance(contract,dict) or len(json.dumps(contract))>20000:raise ValueError('Invalid target contract.')
+                options=self.contract_options(data['profile'])
+                for field in options['fields']:
+                    value=contract.get(field['key'],'')
+                    if not isinstance(value,str):raise ValueError('Contract fields must contain text.')
+                    if field.get('control')=='select' and value and value not in field['choices']:
+                        raise ValueError('Choose a valid '+field['label'].lower()+'.')
+                contract={**contract,'profile_id':data['profile']}
                 project['contract']=contract
                 project['profile']=data['profile']
                 self.profile(data['profile'])

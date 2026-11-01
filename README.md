@@ -115,7 +115,7 @@ These authored examples create an ARM64 `x + 1` function and update it to `x + 2
 
 ## Verification and current limits
 
-The local audit records **51 Studio Python tests**, **12 framework protocol tests**, and **8 JavaScript checks**. Gemini and Ollama have produced checked byte-edit candidates while originals stayed unchanged. The [validation record](docs/VALIDATION.md) explains the scope and remaining gaps.
+The local audit records **55 Studio Python tests**, **12 framework protocol tests**, and **13 JavaScript checks**. Gemini and Ollama have produced checked byte-edit candidates while originals stayed unchanged. The [validation record](docs/VALIDATION.md) explains the scope and remaining gaps.
 
 Important current boundaries include single-file sessions, basic format checks rather than full loader/ABI verification, limited isolated runner coverage, and a remaining native Documents-folder read timeout observed on the development Mac. The application continues to work with its own workspace; the Documents issue is recorded as unresolved. Stop prevents subsequent application of edits while a provider request may continue until it returns or times out.
 
