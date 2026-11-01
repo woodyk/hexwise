@@ -92,6 +92,44 @@ class Audit(unittest.TestCase):
   with patch.object(self.app.providers,'chat',return_value=json.dumps(dict(message='Analysis only',base_sha256=sha(b'AB')))):
    result=self.app.chat(self.task(p))
   self.assertEqual(result['messages'][-1]['outcome'],'analysis');self.assertEqual(len(result['snapshots']),1)
+ def test_desktop_profiles_keep_architecture_without_frozen_research_gate(self):
+  from server import desktop_system_prompt
+  for profile in self.app.registry:
+   prompt=desktop_system_prompt(self.app.profile(profile['id']))
+   self.assertIn('ID: '+profile['id'],prompt)
+   self.assertIn('TARGET RULES',prompt)
+   self.assertIn('BYTE GENERATION AND CHANGE RULES',prompt)
+   self.assertNotIn('The host must provide a task with task_id',prompt)
+   self.assertNotIn('Common keys: protocol',prompt)
+   self.assertIn('interactive draft session',prompt)
+ def test_empty_macos_request_and_legacy_clarification_stop_chain(self):
+  p=self.project(b'',name='empty.bin');seen=[]
+  response=dict(protocol='hexwise/prompt-0.2-draft',profile_id='macos-arm64',status='needs_input',
+                reason='Should this be a raw function or complete macOS application?',missing=['artifact_kind','behavior_specification'])
+  def reply(provider,model,system,messages):
+   seen.append(json.loads(messages[-1]['content']))
+   self.assertIn('Do not demand research bookkeeping',system)
+   return json.dumps(response)
+  task={**self.task(p,chain=['layout','settings']),'profile':'macos-arm64','text':'Create an app'}
+  with patch.object(self.app.providers,'chat',side_effect=reply) as call:result=self.app.chat(task)
+  self.assertEqual(call.call_count,1);self.assertEqual(seen[0]['mode'],'interactive-draft')
+  self.assertEqual(seen[0]['profile_id'],'macos-arm64');self.assertEqual(seen[0]['context_hex'],'')
+  self.assertEqual(result['messages'][-1]['outcome'],'needs_input')
+  self.assertEqual(len(result['snapshots']),1);self.assertEqual(self.app.projects.data(p['id']),b'')
+  # The next answer receives the clarification and user requirements, without losing the draft.
+  def followup(provider,model,system,messages):
+   self.assertTrue(any('raw function or complete' in m['content'] for m in messages))
+   self.assertEqual(json.loads(messages[-1]['content'])['request'],'A complete native app with a counter')
+   return json.dumps(dict(message='Which minimum macOS version and acceptance checks?',base_sha256=sha(b''),status='needs_input',missing=['version','acceptance']))
+  task.update(text='A complete native app with a counter',chain=[])
+  with patch.object(self.app.providers,'chat',side_effect=followup):result=self.app.chat(task)
+  self.assertEqual(result['messages'][-1]['outcome'],'needs_input');self.assertEqual(len(result['snapshots']),1)
+ def test_clarification_cannot_smuggle_a_candidate(self):
+  p=self.project()
+  for status in ('needs_input','unsupported'):
+   response=dict(message='Question',status=status,base_sha256=sha(b'AB'),artifact={'hex':'4344'})
+   with patch.object(self.app.providers,'chat',return_value=json.dumps(response)):result=self.app.chat(self.task(p))
+   self.assertEqual(result['messages'][-2]['outcome'],'rejected');self.assertEqual(self.app.projects.data(p['id']),b'AB')
  def test_provider_failure_retained(self):
   p=self.project()
   with patch.object(self.app.providers,'chat',side_effect=ValueError('Provider HTTP 429')):

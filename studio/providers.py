@@ -43,7 +43,9 @@ RESPONSE_SCHEMA = {'oneOf': [{'type': 'object',
             'required': ['message', 'base_sha256', 'artifact'],
             'additionalProperties': False},
            {'type': 'object',
-            'properties': {'message': {'type': 'string'}, 'base_sha256': {'type': 'string'}},
+            'properties': {'message': {'type': 'string'}, 'base_sha256': {'type': 'string'},
+                           'status': {'type': 'string', 'enum': ['analysis','needs_input','unsupported']},
+                           'missing': {'type': 'array', 'items': {'type': 'string'}}},
             'required': ['message', 'base_sha256'],
             'additionalProperties': False}]}
 
