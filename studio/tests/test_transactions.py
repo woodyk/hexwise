@@ -162,6 +162,8 @@ class Integration(unittest.TestCase):
             with patch('providers.request',return_value={'message':{'content':'OK'}}) as call:
                 self.assertEqual(providers.chat('ollama','model','system',[{'role':'user','content':'hello'}]),'OK')
                 self.assertEqual(len(call.call_args.args[1]['format']['oneOf']),3)
+                self.assertEqual(call.call_args.args[1]['options']['num_ctx'],32768)
+                self.assertEqual(call.call_args.args[1]['options']['num_predict'],8192)
 
     def test_runner_rejects_other_platforms_without_execution(self):
         with self.assertRaisesRegex(ValueError,'Linux x86-64'):

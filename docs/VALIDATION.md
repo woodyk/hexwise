@@ -5,7 +5,7 @@ Public project summary of local checks recorded October 29–31, 2026. No accoun
 
 | Area | Recorded result | Scope |
 | --- | --- | --- |
-| Studio Python tests | 55 passing | Storage, exact backups, stale/conflicting edits, integrity, preferences, prompt chains, providers, real local HTTP and local Git integration |
+| Studio Python tests | 60 passing | Storage, exact backups, stale/conflicting edits, integrity, preferences, prompt chains, providers, real local HTTP and local Git integration |
 | Framework Python tests | 12 passing | Strict protocol/task binding, patch preconditions, fixture evaluation and failure retention |
 | JavaScript | Parse passes; 13 checks pass | Three modal-confirmation regressions, two pane-size constraints three clarification-render checks and five contract-form checks |
 | ARM64 fixtures | Create and update pass 11 public interpreter cases each | Authored `x + 1` and `x + 2` fixtures under restricted semantics; assembler independently cross-checked the bytes |
@@ -37,3 +37,5 @@ Historical framework results are retained in `framework/validation.json` and its
 The October 31 desktop clarification fix adds coverage for all 31 architecture adapters, an empty macOS ARM64 file, follow-up requirements, prompt-chain stopping and rejection of byte proposals mixed with clarification statuses. These are deterministic adapter and transaction regressions; they do not establish native model-generation capability.
 
 Contract-form follow-up: all 32 profile option sets, draft round-trip persistence, custom runtime values, invalid choices, cross-profile contract isolation, real HTTP access, HTML escaping, default values and the save flow are covered. A disposable macOS ARM64 draft was saved and reopened in the browser; no model request or candidate execution was performed in that UI check.
+
+November 1: 60 Studio Python tests now include independent live-evaluator regression checks, no-change rejection and host feedback in repair conversations. Live models produced bounded GUI/native/WASM successes and retained failures; see [build evaluation](BUILD-EVALUATION.md).

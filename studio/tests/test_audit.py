@@ -163,6 +163,22 @@ class Audit(unittest.TestCase):
    return json.dumps(dict(message='Describe the web document.',base_sha256=task['base_sha256'],status='needs_input'))
   with patch.object(self.app.providers,'chat',side_effect=reply):result=self.app.chat(self.task(p))
   self.assertEqual(result['messages'][-1]['outcome'],'needs_input')
+ def test_model_no_change_does_not_create_a_success_snapshot(self):
+  for data in (b'',b'AB'):
+   p=self.project(data,name='no-change-'+str(len(data))+'.bin')
+   response=json.dumps(dict(message='Created',base_sha256=sha(data),artifact={'hex':data.hex()}))
+   with patch.object(self.app.providers,'chat',return_value=response):result=self.app.chat(self.task(p))
+   self.assertEqual(len(result['snapshots']),1);self.assertEqual(result['messages'][-2]['outcome'],'rejected')
+   self.assertIn('no byte changes',result['messages'][-1]['text'])
+ def test_repair_request_receives_host_rejection_feedback(self):
+  p=self.project()
+  with patch.object(self.app.providers,'chat',return_value=json.dumps(dict(message='Invalid',artifact={'hex':'4344'}))):self.app.chat(self.task(p))
+  def repaired(provider,model,system,messages):
+   self.assertTrue(any('HOST VALIDATION FEEDBACK: Proposal not applied:' in m['content'] for m in messages))
+   self.assertIn('never Base64',system);self.assertIn('EVERY response MUST include both',system)
+   return json.dumps(dict(message='Repaired',base_sha256=sha(b'AB'),artifact={'hex':'4344'}))
+  with patch.object(self.app.providers,'chat',side_effect=repaired):result=self.app.chat(self.task(p))
+  self.assertEqual(self.app.projects.data(p['id']),b'CD');self.assertEqual(result['messages'][-1]['outcome'],'applied')
  def test_provider_failure_retained(self):
   p=self.project()
   with patch.object(self.app.providers,'chat',side_effect=ValueError('Provider HTTP 429')):
