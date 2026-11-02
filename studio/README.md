@@ -104,3 +104,15 @@ bash build-macos.sh /absolute/path/to/New-Hexwise.app
 Building the macOS shell requires Apple's command-line developer tools and Python 3.9 or newer. The output path must not exist. Build caches use a temporary directory. The resulting app targets the build host architecture and uses an ad-hoc signature. [The public validation summary](../docs/VALIDATION.md) records checks and remaining limitations.
 
 Provider APIs follow their primary documentation: [OpenAI Responses](https://developers.openai.com/api/docs/guides/text), [Anthropic Messages](https://platform.claude.com/docs/en/api/messages/create), [Gemini content generation](https://ai.google.dev/api/generate-content), and [Ollama Chat](https://docs.ollama.com/api/chat). The complete original concept remains in the [Hexwise repository](https://github.com/woodyk/concepts-and-proofs/tree/main/concepts/direct-binary-software).
+
+## Interactive clarification and research contracts
+
+Studio uses an interactive draft adapter: select a target, describe the desired behavior, and answer the model’s questions in chat. An empty native file requires clarification about the application or function, deployment target, interfaces, imports, layout, signing and acceptance checks before byte generation. Save reusable requirements under **Project → Target & verification contract**. GUI starters use the **Web document** profile.
+
+The standalone architecture prompts retain their strict frozen research-task protocol. Studio extracts their architecture, byte and validation rules without importing the research bookkeeping gate. It does not claim an interactive draft is a frozen evaluation. Missing-input responses stop prompt chains, preserve the candidate, and display readable questions; the raw response remains in project history.
+
+The target form includes profile-specific artifact and production choices, a profile-derived ABI, editable suggestions for runtime, imports, layout, signing and resource policy, and verification choices that distinguish built-in checks from external runners. Required behavior, acceptance, retained behavior and additional integration details remain explicit user requirements. Drafts are saved with the selected profile; a draft saved for another profile is not sent as the active target contract. Saving a draft does not execute tests or configure signing.
+
+## Live application acceptance checks
+
+See [the bounded build evaluation](../docs/BUILD-EVALUATION.md) for real model outputs, native execution, GUI checks, retained failures and reproduction steps. The opt-in `tests/run_live_acceptance.py` writes to a fresh output directory and separates compiler-packaged payloads from complete model-generated artifacts. A successful patch/hash check is not a behavioral pass. Ollama requests explicitly reserve a 32768-token context and an 8192-token output ceiling; larger contexts need matching model support and available memory. Refer to [Ollama context guidance](https://docs.ollama.com/context-length) and [runtime parameters](https://docs.ollama.com/modelfile).

@@ -92,6 +92,93 @@ class Audit(unittest.TestCase):
   with patch.object(self.app.providers,'chat',return_value=json.dumps(dict(message='Analysis only',base_sha256=sha(b'AB')))):
    result=self.app.chat(self.task(p))
   self.assertEqual(result['messages'][-1]['outcome'],'analysis');self.assertEqual(len(result['snapshots']),1)
+ def test_desktop_profiles_keep_architecture_without_frozen_research_gate(self):
+  from server import desktop_system_prompt
+  for profile in self.app.registry:
+   prompt=desktop_system_prompt(self.app.profile(profile['id']))
+   self.assertIn('ID: '+profile['id'],prompt)
+   self.assertIn('TARGET RULES',prompt)
+   self.assertIn('BYTE GENERATION AND CHANGE RULES',prompt)
+   self.assertNotIn('The host must provide a task with task_id',prompt)
+   self.assertNotIn('Common keys: protocol',prompt)
+   self.assertIn('interactive draft session',prompt)
+ def test_empty_macos_request_and_legacy_clarification_stop_chain(self):
+  p=self.project(b'',name='empty.bin');seen=[]
+  response=dict(protocol='hexwise/prompt-0.2-draft',profile_id='macos-arm64',status='needs_input',
+                reason='Should this be a raw function or complete macOS application?',missing=['artifact_kind','behavior_specification'])
+  def reply(provider,model,system,messages):
+   seen.append(json.loads(messages[-1]['content']))
+   self.assertIn('Do not demand research bookkeeping',system)
+   return json.dumps(response)
+  task={**self.task(p,chain=['layout','settings']),'profile':'macos-arm64','text':'Create an app'}
+  with patch.object(self.app.providers,'chat',side_effect=reply) as call:result=self.app.chat(task)
+  self.assertEqual(call.call_count,1);self.assertEqual(seen[0]['mode'],'interactive-draft')
+  self.assertEqual(seen[0]['profile_id'],'macos-arm64');self.assertEqual(seen[0]['context_hex'],'')
+  self.assertEqual(result['messages'][-1]['outcome'],'needs_input')
+  self.assertEqual(len(result['snapshots']),1);self.assertEqual(self.app.projects.data(p['id']),b'')
+  # The next answer receives the clarification and user requirements, without losing the draft.
+  def followup(provider,model,system,messages):
+   self.assertTrue(any('raw function or complete' in m['content'] for m in messages))
+   self.assertEqual(json.loads(messages[-1]['content'])['request'],'A complete native app with a counter')
+   return json.dumps(dict(message='Which minimum macOS version and acceptance checks?',base_sha256=sha(b''),status='needs_input',missing=['version','acceptance']))
+  task.update(text='A complete native app with a counter',chain=[])
+  with patch.object(self.app.providers,'chat',side_effect=followup):result=self.app.chat(task)
+  self.assertEqual(result['messages'][-1]['outcome'],'needs_input');self.assertEqual(len(result['snapshots']),1)
+ def test_clarification_cannot_smuggle_a_candidate(self):
+  p=self.project()
+  for status in ('needs_input','unsupported'):
+   response=dict(message='Question',status=status,base_sha256=sha(b'AB'),artifact={'hex':'4344'})
+   with patch.object(self.app.providers,'chat',return_value=json.dumps(response)):result=self.app.chat(self.task(p))
+   self.assertEqual(result['messages'][-2]['outcome'],'rejected');self.assertEqual(self.app.projects.data(p['id']),b'AB')
+ def test_contract_choices_match_all_targets(self):
+  for identity in ['web-document']+[p['id'] for p in self.app.registry]:
+   options=self.app.dispatch('contract-options',dict(profile=identity))
+   self.assertEqual(options['profile_id'],identity)
+   fields={f['key']:f for f in options['fields']}
+   self.assertEqual(fields['operation']['choices'],['READ','CREATE','UPDATE','DELETE'])
+   self.assertTrue(fields['kind']['choices']);self.assertTrue(fields['abi']['default'])
+   self.assertNotIn('default',fields['acceptance']);self.assertNotIn('default',fields['signature'])
+   runner=' '.join(fields['evaluation']['choices'])
+   self.assertEqual('Docker runner' in runner,identity in ('linux-x86_64','linux-aarch64'))
+  with self.assertRaises(ValueError):self.app.dispatch('contract-options',dict(profile='invalid'))
+  def fields(identity):return {f['key']:f for f in self.app.contract_options(identity)['fields']}
+  self.assertEqual(fields('web-document')['production']['choices'],['source-document'])
+  self.assertEqual(fields('wasm32-wasip2')['kind']['choices'],['WebAssembly component'])
+  self.assertNotEqual(fields('ios-arm64')['signing']['choices'],fields('ios-simulator-arm64')['signing']['choices'])
+ def test_contract_draft_roundtrip_and_custom_target(self):
+  p=self.project();contract=dict(operation='CREATE',kind='Complete native executable',production='direct-complete',
+       version='macOS 14.2; baseline arm64; SDK pinned by evaluator',abi='Apple ARM64, LP64',acceptance='',details='Test environment not configured yet')
+  result=self.app.dispatch('contract',dict(project=p['id'],profile='macos-arm64',contract=contract))
+  self.assertEqual(result['contract']['profile_id'],'macos-arm64');self.assertEqual(len(result['snapshots']),1)
+  reopened=App(self.app.workspace,self.app.data_dir).dispatch('project',dict(project=p['id']))
+  self.assertEqual(reopened['contract'],result['contract'])
+  for bad in (dict(operation='EXECUTE'),dict(kind='WebAssembly component'),dict(version=12),dict(production='invented')):
+   with self.assertRaises(ValueError):self.app.dispatch('contract',dict(project=p['id'],profile='macos-arm64',contract=bad))
+  self.assertEqual(self.app.projects.load(p['id'])['contract'],result['contract'])
+ def test_profile_switch_does_not_reuse_incompatible_contract(self):
+  p=self.project();self.app.dispatch('contract',dict(project=p['id'],profile='macos-arm64',contract={'abi':'Apple ARM64, LP64'}))
+  def reply(provider,model,system,messages):
+   task=json.loads(messages[-1]['content']);self.assertEqual(task['target_contract'],{})
+   self.assertIn('different profile',task['contract_note'])
+   return json.dumps(dict(message='Describe the web document.',base_sha256=task['base_sha256'],status='needs_input'))
+  with patch.object(self.app.providers,'chat',side_effect=reply):result=self.app.chat(self.task(p))
+  self.assertEqual(result['messages'][-1]['outcome'],'needs_input')
+ def test_model_no_change_does_not_create_a_success_snapshot(self):
+  for data in (b'',b'AB'):
+   p=self.project(data,name='no-change-'+str(len(data))+'.bin')
+   response=json.dumps(dict(message='Created',base_sha256=sha(data),artifact={'hex':data.hex()}))
+   with patch.object(self.app.providers,'chat',return_value=response):result=self.app.chat(self.task(p))
+   self.assertEqual(len(result['snapshots']),1);self.assertEqual(result['messages'][-2]['outcome'],'rejected')
+   self.assertIn('no byte changes',result['messages'][-1]['text'])
+ def test_repair_request_receives_host_rejection_feedback(self):
+  p=self.project()
+  with patch.object(self.app.providers,'chat',return_value=json.dumps(dict(message='Invalid',artifact={'hex':'4344'}))):self.app.chat(self.task(p))
+  def repaired(provider,model,system,messages):
+   self.assertTrue(any('HOST VALIDATION FEEDBACK: Proposal not applied:' in m['content'] for m in messages))
+   self.assertIn('never Base64',system);self.assertIn('EVERY response MUST include both',system)
+   return json.dumps(dict(message='Repaired',base_sha256=sha(b'AB'),artifact={'hex':'4344'}))
+  with patch.object(self.app.providers,'chat',side_effect=repaired):result=self.app.chat(self.task(p))
+  self.assertEqual(self.app.projects.data(p['id']),b'CD');self.assertEqual(result['messages'][-1]['outcome'],'applied')
  def test_provider_failure_retained(self):
   p=self.project()
   with patch.object(self.app.providers,'chat',side_effect=ValueError('Provider HTTP 429')):

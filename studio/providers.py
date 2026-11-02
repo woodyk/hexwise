@@ -43,7 +43,9 @@ RESPONSE_SCHEMA = {'oneOf': [{'type': 'object',
             'required': ['message', 'base_sha256', 'artifact'],
             'additionalProperties': False},
            {'type': 'object',
-            'properties': {'message': {'type': 'string'}, 'base_sha256': {'type': 'string'}},
+            'properties': {'message': {'type': 'string'}, 'base_sha256': {'type': 'string'},
+                           'status': {'type': 'string', 'enum': ['analysis','needs_input','unsupported']},
+                           'missing': {'type': 'array', 'items': {'type': 'string'}}},
             'required': ['message', 'base_sha256'],
             'additionalProperties': False}]}
 
@@ -144,6 +146,6 @@ class Providers:
             return '\n'.join(p.get('text','') for c in data.get('candidates',[]) for p in c.get('content',{}).get('parts',[]) if not p.get('thought'))
         full=[{'role':'system','content':system}]+messages
         if kind=='ollama':
-            return request(p['base']+'/api/chat',dict(model=model,messages=full,stream=False,format=RESPONSE_SCHEMA,options={'temperature':0}),headers).get('message',{}).get('content','')
+            return request(p['base']+'/api/chat',dict(model=model,messages=full,stream=False,format=RESPONSE_SCHEMA,options={'temperature':0,'num_ctx':32768,'num_predict':8192}),headers).get('message',{}).get('content','')
         data=request(p['base']+'/chat/completions',dict(model=model,messages=full,max_tokens=8192),headers)
         return data['choices'][0]['message'].get('content','')
